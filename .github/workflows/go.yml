@@ -67,7 +67,7 @@ jobs:
             echo "Using Android CC: $CC"
           fi
           
-          go build -buildmode=c-shared -o "${NAME}${EXT}"  
+          go build -ldflags="-s -w" -buildmode=c-shared -o "${NAME}${EXT}"  
 
       - name: Compress Artifacts
         run: |
