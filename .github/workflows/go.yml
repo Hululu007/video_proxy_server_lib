@@ -17,12 +17,12 @@ jobs:
       matrix:
         include:
           # 桌面与服务器平台 (纯 Go 静态编译，关闭 CGO)
-          - { goos: linux, goarch: amd64, cgo: 0 }
-          - { goos: linux, goarch: arm64, cgo: 0 }
-          - { goos: darwin, goarch: amd64, cgo: 0 }
-          - { goos: darwin, goarch: arm64, cgo: 0 }
-          - { goos: windows, goarch: amd64, cgo: 0 }
-          - { goos: windows, goarch: arm64, cgo: 0 }
+          - { goos: linux, goarch: amd64, cgo: 1 }
+          - { goos: linux, goarch: arm64, cgo: 1 }
+          - { goos: darwin, goarch: amd64, cgo: 1 }
+          - { goos: darwin, goarch: arm64, cgo: 1 }
+          - { goos: windows, goarch: amd64, cgo: 1 }
+          - { goos: windows, goarch: arm64, cgo: 1 }
 
           # Android 平台 (必须开启 CGO 并配置 NDK)
           - { goos: android, goarch: arm, cgo: 1, ndk_arch: arm-linux-androideabi, api: 26 }
