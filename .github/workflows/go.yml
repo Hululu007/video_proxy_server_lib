@@ -37,6 +37,15 @@ jobs:
         with:
           go-version: '1.22'
           cache: true
+      # 安装 Windows 交叉编译工具链
+      - name: Install MinGW-w64
+        if: matrix.goos == 'windows'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-mingw-w64-x86-64 \
+            gcc-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabihf
 
       # 仅在需要 Android NDK 时才安装（节省其他矩阵的运行时间）
       - name: Set up Android NDK
@@ -57,6 +66,7 @@ jobs:
           EXT=""
           if [ "${{ matrix.goos }}" = "windows" ]; then
             EXT=".dll"
+            export CC="x86_64-w64-mingw32-gcc"
           else
             EXT=".so"
           fi
@@ -72,6 +82,11 @@ jobs:
               export CC="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/${{ matrix.ndk_arch }}${{ matrix.api }}-clang"
             fi
             echo "Using Android CC: $CC"
+          fi
+          if [ "${{ matrix.goos }}" = "linux" ] && [ "${{ matrix.goarch }}" = "arm64" ]; then
+             export CC="aarch64-linux-gnu-gcc"
+          elif [ "${{ matrix.goos }}" = "linux" ] && [ "${{ matrix.goarch }}" = "arm" ]; then
+              export CC="arm-linux-gnueabihf-gcc"
           fi
           
           go build -ldflags="-s -w" -buildmode=c-shared -o "${NAME}${EXT}"  .
