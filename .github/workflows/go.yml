@@ -16,7 +16,14 @@ jobs:
       fail-fast: false # 即使某一个平台失败，其他平台也继续构建
       matrix:
         include:
+          # Linux 平台
+          - { goos: linux, goarch: amd64, cgo: 0 }
+          - { goos: linux, goarch: arm64, cgo: 0 }
+          - { goos: linux, goarch: arm, cgo: 0, goarm: 7 }
 
+          # Windows 平台
+          - { goos: windows, goarch: amd64, cgo: 0 }
+          - { goos: windows, goarch: arm64, cgo: 0 }
           # Android 平台 (必须开启 CGO 并配置 NDK)
           - { goos: android, goarch: arm, cgo: 1, ndk_arch: arm-linux-androideabi, api: 26 }
           - { goos: android, goarch: arm64, cgo: 1, ndk_arch: aarch64-linux-android, api: 26 }
@@ -29,6 +36,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+          cache: true
 
       # 仅在需要 Android NDK 时才安装（节省其他矩阵的运行时间）
       - name: Set up Android NDK
@@ -43,15 +51,14 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           CGO_ENABLED: ${{ matrix.cgo }}
+          GOARM: ${{ matrix.goarm }}
         run: |
           NAME="server-${{ matrix.goos }}-${{ matrix.goarch }}"
-          EXT=".so"
+          EXT=""
           if [ "${{ matrix.goos }}" = "windows" ]; then
-           EXT=".dll"
-          elif [ "${{ matrix.goos }}" = "android" ]; then
-           EXT=".so"
+            EXT=".dll"
           else
-           EXT=".so"
+            EXT=".so"
           fi
           
           # 如果是 Android 平台，配置 NDK 交叉编译器环境
@@ -67,12 +74,17 @@ jobs:
             echo "Using Android CC: $CC"
           fi
           
-          go build -ldflags="-s -w" -buildmode=c-shared -o "${NAME}${EXT}"  
+          go build -ldflags="-s -w" -buildmode=c-shared -o "${NAME}${EXT}"  .
 
       - name: Compress Artifacts
         run: |
           NAME="server-${{ matrix.goos }}-${{ matrix.goarch }}"
-          EXT=".so"
+          EXT=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            EXT=".dll"
+          else
+            EXT=".so"
+          fi
          
           
           if [ "${{ matrix.goos }}" = "windows" ]; then
